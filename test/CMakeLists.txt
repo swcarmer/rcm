@@ -1,7 +1,6 @@
 
 set(test_list
   queue.c
-  cs_graph.c
   csr_matrix.c
   )
 
