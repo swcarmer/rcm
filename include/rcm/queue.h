@@ -4,13 +4,24 @@
 
 #include <stddef.h>
 
-typedef struct queue_t queue_t;
+struct queue
+{
+  size_t size;
+  size_t capacity;
+  size_t front_index;
+  size_t * entries;
+};
 
-queue_t * queue_new(void);
-void queue_free(queue_t ** q);
-size_t queue_size(const queue_t * q);
-size_t queue_front(const queue_t * q);
-void queue_push(queue_t * q, size_t i);
-size_t queue_pop(queue_t * q);
+struct queue make_queue(void);
+
+void queue_free(struct queue * q);
+
+size_t queue_size(const struct queue * q);
+
+size_t queue_front(const struct queue * q);
+
+void queue_push(struct queue * q, size_t i);
+
+size_t queue_pop(struct queue * q);
 
 #endif

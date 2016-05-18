@@ -3,54 +3,41 @@
 #include <stdlib.h>
 #include <assert.h>
 
-typedef struct queue_t
-{
-  size_t size;
-  size_t capacity;
-  size_t front_index;
-  size_t * entries;
-} queue_t;
+#include <rcm/queue.h>
 
-
-queue_t * queue_new(void)
+struct queue make_queue(void)
 {
-  queue_t * q = malloc(sizeof(queue_t));
-  q->size = 0;
-  q->capacity = 4;
-  q->front_index = 0;
-  q->entries = calloc(q->capacity, sizeof(size_t));
+  const size_t initial_capacity = 4;
+  struct queue q = {.size = 0,
+                    .capacity = initial_capacity,
+                    .front_index = 0,
+                    .entries = calloc(initial_capacity, sizeof(size_t))};
 
   return q;
 }
 
-void queue_free(queue_t ** q_)
-{
-  queue_t * q = *q_;
-  if (!q) return;
 
+void queue_free(struct queue * q)
+{
   q->size = 0;
   q->front_index = 0;
   free(q->entries);
-
-  free(q);
-
-  *q_ = NULL;
 }
 
 
-size_t queue_size(const queue_t * q)
+size_t queue_size(const struct queue * q)
 {
   return q->size;
 }
 
 
-size_t queue_front(const queue_t * q)
+size_t queue_front(const struct queue * q)
 {
   return q->entries[q->front_index];
 }
 
 
-void queue_push(queue_t * q, size_t i)
+void queue_push(struct queue * q, size_t i)
 {
   // If the queue is at capacity, resize its internal storage
   if (q->size == q->capacity) {
@@ -69,7 +56,7 @@ void queue_push(queue_t * q, size_t i)
 }
 
 
-size_t queue_pop(queue_t * q)
+size_t queue_pop(struct queue * q)
 {
   assert(queue_size(q) > 0);
   size_t i = queue_front(q);
