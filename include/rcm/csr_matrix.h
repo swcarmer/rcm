@@ -37,6 +37,10 @@ double * csr_matrix_get(struct csr_matrix * A, size_t i, size_t j);
 
 
 
+struct csr_matrix csr_matrix_permute(struct csr_matrix * A, const size_t * p);
+
+
+
 void csr_matrix_mult_add(const struct csr_matrix * A,
                          const double * x,
                          double * y);

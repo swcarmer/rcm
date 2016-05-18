@@ -2,6 +2,7 @@
 set(test_list
   queue.c
   csr_matrix.c
+  csr_matrix_permute.c
   )
 
 foreach(test ${test_list})

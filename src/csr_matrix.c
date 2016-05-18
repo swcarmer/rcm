@@ -95,6 +95,42 @@ double * csr_matrix_get(struct csr_matrix * A, size_t i, size_t j)
 }
 
 
+struct csr_matrix csr_matrix_permute(struct csr_matrix * A, const size_t * p)
+{
+  size_t * counts = calloc(A->num_rows, sizeof(size_t));
+  for (size_t i = 0; i < A->num_rows; ++i)
+    counts[p[i]] = A->offsets[i + 1] - A->offsets[i];
+
+  size_t * offsets = calloc(A->num_rows + 1, sizeof(size_t));
+  for (size_t i = 0; i < A->num_rows; ++i)
+    offsets[i + 1] = offsets[i] + counts[i];
+
+  const size_t nnz = csr_matrix_num_nonzeros(A);
+  size_t * columns = calloc(nnz, sizeof(size_t));
+  double * values = calloc(nnz, sizeof(double));
+
+  for (size_t i = 0; i < A->num_rows; ++i) {
+    for (size_t k = A->offsets[i]; k < A->offsets[i + 1]; ++k) {
+      const size_t j = A->columns[k];
+
+      counts[p[i]] -= 1;
+      columns[offsets[p[i]] + counts[p[i]]] = p[j];
+      values[offsets[p[i]] + counts[p[i]]] = A->values[k];
+    }
+  }
+
+  free(counts);
+
+  struct csr_matrix B = {.num_rows = A->num_rows,
+                         .num_cols = A->num_cols,
+                         .offsets = offsets,
+                         .columns = columns,
+                         .values = values};
+
+  return B;
+}
+
+
 void csr_matrix_mult_add(const struct csr_matrix * A,
                          const double * x,
                          double * y)
