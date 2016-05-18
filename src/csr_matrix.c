@@ -57,6 +57,24 @@ void csr_matrix_free(struct csr_matrix * A)
 }
 
 
+size_t csr_matrix_num_nonzeros(const struct csr_matrix * A)
+{
+  return A->offsets[A->num_rows];
+}
+
+
+size_t csr_matrix_degree(const struct csr_matrix * A, size_t i)
+{
+  return A->offsets[i + 1] - A->offsets[i];
+}
+
+
+size_t csr_matrix_neighbor(const struct csr_matrix * A, size_t i, size_t k)
+{
+  return A->columns[A->offsets[i] + k];
+}
+
+
 double csr_matrix_val(const struct csr_matrix * A, size_t i, size_t j)
 {
   for (size_t k = A->offsets[i]; k < A->offsets[i + 1]; ++k)

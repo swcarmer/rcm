@@ -7,7 +7,6 @@
 
 int main(int argc, char ** argv)
 {
-  /* Make a graph */
   size_t num_vertices = 16;
   size_t * edges = calloc(6 * num_vertices, sizeof(size_t));
 
@@ -21,7 +20,9 @@ int main(int argc, char ** argv)
   }
 
   struct csr_matrix A =
-    make_csr_matrix(num_vertices, num_vertices, 3*num_vertices, edges);
+    make_csr_matrix(num_vertices, num_vertices, 3 * num_vertices, edges);
+
+  assert(csr_matrix_num_nonzeros(&A) == 3 * num_vertices);
 
   free(edges);
 
@@ -44,6 +45,7 @@ int main(int argc, char ** argv)
   for (size_t i = 0; i < num_vertices; ++i) {
     assert(fabs(csr_matrix_val(&A, i, i) - 2.0) < 1.0e-16);
     assert(fabs(csr_matrix_val(&A, i, (i + 1) % num_vertices) + 1.0) < 1.0e-16);
+    assert(csr_matrix_degree(&A, i) == 3);
   }
 
   double * x = calloc(num_vertices, sizeof(double));
