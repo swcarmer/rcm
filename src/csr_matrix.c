@@ -1,4 +1,5 @@
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include <rcm/csr_matrix.h>
@@ -6,7 +7,7 @@
 struct csr_matrix make_csr_matrix(size_t num_rows,
                                   size_t num_cols,
                                   size_t num_entries,
-                                  size_t * entries)
+                                  const size_t * entries)
 {
   size_t * counts = calloc(num_rows, sizeof(size_t));
 
@@ -69,9 +70,9 @@ size_t csr_matrix_degree(const struct csr_matrix * A, size_t i)
 }
 
 
-size_t csr_matrix_neighbor(const struct csr_matrix * A, size_t i, size_t k)
+const size_t * csr_matrix_neighbors(const struct csr_matrix * A, size_t i)
 {
-  return A->columns[A->offsets[i] + k];
+  return A->columns + A->offsets[i];
 }
 
 
@@ -160,4 +161,64 @@ void csr_matrix_mult_add_trans(const struct csr_matrix * A,
       y[j] += A->values[k] * z;
     }
   }
+}
+
+
+void csr_matrix_to_file(const struct csr_matrix * A, FILE * file)
+{
+  fprintf(file, "%zu %zu %zu\n",
+          A->num_rows, A->num_cols, csr_matrix_num_nonzeros(A));
+
+  for (size_t i = 0; i < A->num_rows; ++i) {
+    fprintf(file, "%zu, %zu: ", i, csr_matrix_degree(A, i));
+
+    for (size_t k = A->offsets[i]; k < A->offsets[i + 1]; ++k)
+      fprintf(file, "%zu %lf ", A->columns[k], A->values[k]);
+
+    fprintf(file, "\n");
+  }
+}
+
+
+struct csr_matrix csr_matrix_from_file(FILE * file)
+{
+  size_t num_rows = 0, num_cols = 0, nnz = 0, num_read = 0;
+
+  num_read = fscanf(file, "%zu %zu %zu\n", &num_rows, &num_cols, &nnz);
+  assert(num_read == 3);
+  num_read = 0;
+
+  size_t * offsets = calloc(num_rows + 1, sizeof(size_t));
+  size_t * columns = calloc(nnz, sizeof(size_t));
+  double * values = calloc(nnz, sizeof(double));
+
+  for (size_t i = 0; i < num_rows; ++i) {
+    size_t degree = 0, j = 0;
+
+    num_read = fscanf(file, "%zu, %zu: ", &j, &degree);
+    assert(num_read == 2);
+    assert(j == i);
+
+    offsets[i + 1] = offsets[i] + degree;
+
+    for (size_t k = 0; k < degree; ++k) {
+      double z = 0.0;
+
+      num_read = fscanf(file, "%zu %lf ", &j, &z);
+      assert(num_read == 2);
+
+      columns[offsets[i] + k] = j;
+      values[offsets[i] + k] = z;
+    }
+
+    fscanf(file, "\n");
+  }
+
+  struct csr_matrix A = {.num_rows = num_rows,
+                         .num_cols = num_cols,
+                         .offsets = offsets,
+                         .columns = columns,
+                         .values = values};
+
+  return A;
 }
